@@ -270,7 +270,7 @@ glDrawArrays(GL_TRIANGLES, 0, AVATAR_VERTS);
         glDrawArrays(GL_TRIANGLES, 0, AVATAR_VERTS);
 
         // avatar aura particles (orange dust)
-glUniform1f(uPointSize, 42.0f);
+glUniform1f(uPointSize, 10.0f);
 glUniform4f(uColor, 1.0f, 0.55f, 0.2f, 0.35f);
 glUniform1i(uCircle, 1);
 glUniform1i(uGlow, 0);
