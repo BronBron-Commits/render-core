@@ -1,1 +1,0 @@
-/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/lumen_social.dir/link.d CMakeFiles/lumen_social.dir/src/main.cpp.o CMakeFiles/lumen_social.dir/src/core/app.cpp.o CMakeFiles/lumen_social.dir/src/render/camera.cpp.o -o lumen_social  /usr/lib/x86_64-linux-gnu/libSDL2.so /usr/lib/x86_64-linux-gnu/libGLEW.so /usr/lib/x86_64-linux-gnu/libGLX.so /usr/lib/x86_64-linux-gnu/libOpenGL.so

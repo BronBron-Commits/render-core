@@ -1,0 +1,16 @@
+# build artifacts
+build/
+
+# CMake junk
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# editor files
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store

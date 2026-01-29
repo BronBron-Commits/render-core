@@ -186,14 +186,31 @@ int main()
         glUniform1i(uGlow, 1);
         glUniform2f(uOffset, 0, avatar.y);
         glDrawArrays(GL_POINTS, 0, 1);
+        
+        // avatar silhouette glow (geometry pass)
+        glUniform1f(uPointSize, 1.0f);
+        glUniform4f(uColor, 0.75f, 0.9f, 1.0f, 0.18f);
+        glUniform1i(uGlow, 1);
+        glUniform1i(uCircle, 0);
 
-        // avatar geometry
+        // slightly scale up silhouette
+        glUniform1f(uScale, 1.06f);
+        glUniform2f(uOffset, 0.0f, avatar.y);
+
+        glBindVertexArray(vaoAvatar);
+        glDrawArrays(GL_TRIANGLES, 0, AVATAR_VERTS);
+
+        // avatar geometry (foreground)
         glUniform1f(uPointSize, 1.0f);
         glUniform4f(uColor, 0.92f, 0.92f, 1.0f, 1.0f);
         glUniform1i(uGlow, 0);
         glUniform1i(uCircle, 0);
+        glUniform1f(uScale, 1.0f);
+        glUniform2f(uOffset, 0.0f, avatar.y);
+
         glBindVertexArray(vaoAvatar);
         glDrawArrays(GL_TRIANGLES, 0, AVATAR_VERTS);
+
 
         // vignette
         glUniform1i(uVignette, 1);
