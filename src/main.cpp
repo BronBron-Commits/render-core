@@ -14,6 +14,13 @@ struct Particle {
     float x, y, vx, vy, life;
 };
 
+struct AuraParticle {
+    float x, y;
+    float vx, vy;
+    float life;
+};
+
+
 struct AvatarVisual {
     float y = 0.0f;
     float phase = 0.0f;
@@ -47,6 +54,23 @@ int main()
     constexpr int MAX = 900;
     std::vector<Particle> particles(MAX);
 
+constexpr int AURA_MAX = 220;
+std::vector<AuraParticle> aura(AURA_MAX);
+
+for (auto& p : aura) {
+    float angle = (rand() % 1000) / 1000.0f * 6.28318f;
+    float radius = (rand() % 1000) / 1000.0f * 0.08f;
+
+    p.x = std::cos(angle) * radius;
+    p.y = std::sin(angle) * radius;
+
+    p.vx = (rand() % 1000) / 600000.0f - 0.0008f;
+    p.vy = (rand() % 1000) / 600000.0f - 0.0008f;
+
+    p.life = (rand() % 1000) / 1000.0f;
+}
+
+
     for (auto& p : particles) {
         p.x = (rand() % 1000) / 500.0f - 1.0f;
         p.y = (rand() % 1000) / 500.0f - 1.0f;
@@ -54,6 +78,9 @@ int main()
         p.vy = (rand() % 1000) / 1200000.0f + 0.0002f;
         p.life = (rand() % 1000) / 1000.0f;
     }
+
+
+
 
     // ---------------- Full humanoid geometry ----------------
     float avatarVerts[] = {
@@ -160,8 +187,37 @@ int main()
             pts.push_back(p.y);
         }
 
+        std::vector<float> auraPts;
+auraPts.reserve(AURA_MAX * 2);
+
+for (auto& p : aura) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life -= dt * 0.5f;
+
+    if (p.life <= 0.0f) {
+        float angle = (rand() % 1000) / 1000.0f * 6.28318f;
+        float radius = (rand() % 1000) / 1000.0f * 0.08f;
+
+        p.x = std::cos(angle) * radius;
+        p.y = std::sin(angle) * radius;
+
+        p.vx = (rand() % 1000) / 600000.0f - 0.0008f;
+        p.vy = (rand() % 1000) / 600000.0f - 0.0008f;
+
+        p.life = 1.0f;
+    }
+
+    auraPts.push_back(p.x);
+    auraPts.push_back(p.y + avatar.y);
+}
+
         glBindBuffer(GL_ARRAY_BUFFER, vboParticles);
         glBufferSubData(GL_ARRAY_BUFFER, 0, pts.size() * sizeof(float), pts.data());
+        glBindBuffer(GL_ARRAY_BUFFER, vboParticles);
+glBufferSubData(GL_ARRAY_BUFFER, 0,
+                auraPts.size() * sizeof(float),
+                auraPts.data());
 
         glClearColor(0.04f, 0.05f, 0.07f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -180,18 +236,20 @@ int main()
         glBindVertexArray(vaoParticles);
         glDrawArrays(GL_POINTS, 0, MAX);
 
-        // avatar glow
-        glUniform1f(uPointSize, 150.0f);
-        glUniform4f(uColor, 0.75f, 0.9f, 1.0f, 0.35f);
-        glUniform1i(uGlow, 1);
-        glUniform2f(uOffset, 0, avatar.y);
-        glDrawArrays(GL_POINTS, 0, 1);
+
         
-        // avatar silhouette glow (geometry pass)
-        glUniform1f(uPointSize, 1.0f);
-        glUniform4f(uColor, 0.75f, 0.9f, 1.0f, 0.18f);
-        glUniform1i(uGlow, 1);
-        glUniform1i(uCircle, 0);
+// avatar silhouette glow (geometry pass)
+glUniform1f(uPointSize, 1.0f);
+glUniform4f(uColor, 1.0f, 0.7f, 0.3f, 0.22f);
+glUniform1i(uGlow, 1);
+glUniform1i(uCircle, 0);
+
+glUniform1f(uScale, 1.06f);
+glUniform2f(uOffset, 0.0f, avatar.y);
+
+glBindVertexArray(vaoAvatar);
+glDrawArrays(GL_TRIANGLES, 0, AVATAR_VERTS);
+
 
         // slightly scale up silhouette
         glUniform1f(uScale, 1.06f);
@@ -210,6 +268,17 @@ int main()
 
         glBindVertexArray(vaoAvatar);
         glDrawArrays(GL_TRIANGLES, 0, AVATAR_VERTS);
+
+        // avatar aura particles (orange dust)
+glUniform1f(uPointSize, 42.0f);
+glUniform4f(uColor, 1.0f, 0.55f, 0.2f, 0.35f);
+glUniform1i(uCircle, 1);
+glUniform1i(uGlow, 0);
+glUniform2f(uOffset, 0.0f, 0.0f);
+glUniform1f(uScale, 1.0f);
+
+glBindVertexArray(vaoParticles);
+glDrawArrays(GL_POINTS, 0, AURA_MAX);
 
 
         // vignette
