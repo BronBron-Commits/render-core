@@ -77,6 +77,13 @@ int main()
     App app;
     if (!app.init()) return 1;
 
+// ---------------- OpenGL state (REQUIRED) ----------------
+glDisable(GL_DEPTH_TEST);
+glEnable(GL_BLEND);
+glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+glEnable(GL_PROGRAM_POINT_SIZE);
+
+
     AvatarVisual avatar;
     MouseState mouse;
     float time = 0.0f;
@@ -175,8 +182,15 @@ int main()
     GLint mColor  = glGetUniformLocation(meshProg, "uColor");
     GLint mTime   = glGetUniformLocation(meshProg, "uTime");
 
-    GLint pColor = glGetUniformLocation(particleProg, "uColor");
-    GLint pSize  = glGetUniformLocation(particleProg, "uPointSize");
+GLint pColor = glGetUniformLocation(particleProg, "uColor");
+GLint pSize  = glGetUniformLocation(particleProg, "uPointSize");
+
+// NEW (required for upgraded fragment shader)
+GLint pTime  = glGetUniformLocation(particleProg, "uTime");
+GLint pGlow  = glGetUniformLocation(particleProg, "uGlowStrength");
+GLint pSoft  = glGetUniformLocation(particleProg, "uSoftness");
+GLint pPulse = glGetUniformLocation(particleProg, "uPulse");
+
 
     // --------------------------------------------------------
     // Loop
@@ -303,9 +317,18 @@ else if (p.y > WORLD_TOP) {
         glClearColor(0.04f, 0.05f, 0.07f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(particleProg);
-        glUniform1f(pSize, 6.0f);
-        glUniform4f(pColor, 0.55f, 0.7f, 1.0f, 0.25f);
+glUseProgram(particleProg);
+
+// REQUIRED uniforms
+glUniform1f(pSize, 6.0f);
+glUniform1f(pTime, time);
+glUniform1f(pGlow, 0.6f);
+glUniform1f(pSoft, 0.18f);
+glUniform1f(pPulse, 0.15f);
+
+// Particle colors
+glUniform4f(pColor, 0.55f, 0.7f, 1.0f, 0.25f);
+
         glBindVertexArray(vaoParticles);
         glDrawArrays(GL_POINTS, 0, MAX);
 
