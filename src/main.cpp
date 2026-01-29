@@ -185,9 +185,9 @@ int main()
         float dt = app.frame_dt();
         time += dt;
 
-        // ---------------- Mouse ----------------
+        // ---------------- Mouse (hover only) ----------------
         int mx, my, w, h;
-        uint32_t buttons = SDL_GetMouseState(&mx, &my);
+        SDL_GetMouseState(&mx, &my);
         SDL_GetWindowSize(app.get_window(), &w, &h);
 
         float nx = (mx / (float)w) * 2.0f - 1.0f;
@@ -197,7 +197,10 @@ int main()
         mouse.dy = ny - mouse.y;
         mouse.x = nx;
         mouse.y = ny;
-        mouse.active = (buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) != 0;
+
+        // activate only if mouse is actually moving (deadzone)
+        float speed2 = mouse.dx * mouse.dx + mouse.dy * mouse.dy;
+        mouse.active = speed2 > 0.000002f;
 
         avatar.phase += dt;
         avatar.y = std::sin(avatar.phase) * 0.035f;
