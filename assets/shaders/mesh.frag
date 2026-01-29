@@ -18,29 +18,27 @@ float verticalForm(float y)
 
     return
         1.0
-        + torso * 0.22   // strong chest/core
-        - head  * 0.12   // head recedes slightly
-        - legs  * 0.16;  // heavy lower mass
+        + torso * 0.22
+        - head  * 0.12
+        - legs  * 0.16;
 }
 
-/* Side thickness exaggeration */
 float lateralForm(float x)
 {
     float ax = abs(x);
     return 1.0 - smoothstep(0.045, 0.16, ax) * 0.20;
 }
 
-/* Top-down light illusion */
 float topLight(float y)
 {
     return 1.0 + smoothstep(-0.05, 0.25, y) * 0.10;
 }
 
 /* -----------------------------------------
-   Graphic silhouette
+   Silhouette metrics
 ----------------------------------------- */
 
-float rimDarken(vec2 p)
+float rimMask(vec2 p)
 {
     float ax = abs(p.x);
     float ay = abs(p.y);
@@ -52,6 +50,20 @@ float rimDarken(vec2 p)
 }
 
 /* -----------------------------------------
+   Glow (edge-biased, capped)
+----------------------------------------- */
+
+float rimGlow(vec2 p)
+{
+    float rim = rimMask(p);
+
+    // soft pulse, slow
+    float pulse = 0.85 + 0.15 * sin(uTime * 1.4);
+
+    return rim * pulse;
+}
+
+/* -----------------------------------------
    Main
 ----------------------------------------- */
 
@@ -59,22 +71,35 @@ void main()
 {
     float shade = 1.0;
 
-    // Shape first
+    // Structural shading
     shade *= verticalForm(vLocalPos.y);
     shade *= lateralForm(vLocalPos.x);
     shade *= topLight(vLocalPos.y);
 
-    // Assertive life motion
+    // Life motion
     shade *= 0.93 + 0.07 * sin(uTime * 1.8 + vLocalPos.y * 7.0);
 
-    // HARD clamp: prevents any blowout
+    // Clamp base shading hard
     shade = clamp(shade, 0.75, 1.12);
 
-    vec3 color = uColor.rgb * shade;
+    vec3 baseColor = uColor.rgb * shade;
 
-    // Strong silhouette cut (ink-like)
-    float rim = rimDarken(vLocalPos);
-    color *= (1.0 - rim * 0.28);
+    // Dark silhouette cut (keeps form readable)
+    float rim = rimMask(vLocalPos);
+    baseColor *= (1.0 - rim * 0.28);
 
-    FragColor = vec4(color, uColor.a);
+    /* -------- GLOW -------- */
+
+    float glow = rimGlow(vLocalPos);
+
+    // Glow color (cool-biased, tweak freely)
+    vec3 glowColor = vec3(0.55, 0.55, 1.0);
+
+    // Intensity cap — THIS is what keeps it sane
+    vec3 emissive = glowColor * glow * 0.50;
+
+    // Final color: base + glow (bounded)
+    vec3 finalColor = baseColor + emissive;
+
+    FragColor = vec4(finalColor, uColor.a);
 }

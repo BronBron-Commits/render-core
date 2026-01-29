@@ -13,6 +13,14 @@
 // ------------------------------------------------------------
 // Data
 // ------------------------------------------------------------
+struct MouseState {
+    float x = 0.0f;     // NDC (-1..1)
+    float y = 0.0f;
+    float dx = 0.0f;
+    float dy = 0.0f;
+    bool  active = false;
+};
+
 struct Particle {
     float x, y, vx, vy, life;
 };
@@ -70,6 +78,7 @@ int main()
     if (!app.init()) return 1;
 
     AvatarVisual avatar;
+    MouseState mouse;
     float time = 0.0f;
 
     // --------------------------------------------------------
@@ -137,7 +146,7 @@ int main()
     glEnableVertexAttribArray(0);
 
     // --------------------------------------------------------
-    // Particle buffer (packed: particles + aura)
+    // Particle buffer (packed)
     // --------------------------------------------------------
     GLuint vaoParticles, vboParticles;
     glGenVertexArrays(1, &vaoParticles);
@@ -152,7 +161,7 @@ int main()
     glEnableVertexAttribArray(0);
 
     // --------------------------------------------------------
-    // Shaders (SEPARATED)
+    // Shaders
     // --------------------------------------------------------
     GLuint meshProg = make_program(
         "assets/shaders/mesh.vert",
@@ -176,27 +185,81 @@ int main()
         float dt = app.frame_dt();
         time += dt;
 
+        // ---------------- Mouse ----------------
+        int mx, my, w, h;
+        uint32_t buttons = SDL_GetMouseState(&mx, &my);
+        SDL_GetWindowSize(app.get_window(), &w, &h);
+
+        float nx = (mx / (float)w) * 2.0f - 1.0f;
+        float ny = 1.0f - (my / (float)h) * 2.0f;
+
+        mouse.dx = nx - mouse.x;
+        mouse.dy = ny - mouse.y;
+        mouse.x = nx;
+        mouse.y = ny;
+        mouse.active = (buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) != 0;
+
         avatar.phase += dt;
         avatar.y = std::sin(avatar.phase) * 0.035f;
 
         std::vector<float> packed;
         packed.reserve((MAX + AURA_MAX) * 2);
 
+        // ---------------- Particles ----------------
+        constexpr float SCATTER_RADIUS = 0.15f;
+        constexpr float SCATTER_FORCE  = 0.0025f;
+
         for (auto& p : particles) {
             p.x += p.vx;
             p.y += p.vy;
+
+            if (mouse.active) {
+                float dx = p.x - mouse.x;
+                float dy = p.y - mouse.y;
+                float d2 = dx*dx + dy*dy;
+
+                if (d2 < SCATTER_RADIUS * SCATTER_RADIUS) {
+                    float d = std::sqrt(d2) + 0.0001f;
+                    float f = 1.0f - d / SCATTER_RADIUS;
+                    p.vx += (dx / d) * f * SCATTER_FORCE + mouse.dx * 0.01f;
+                    p.vy += (dy / d) * f * SCATTER_FORCE + mouse.dy * 0.01f;
+                }
+            }
+
             if ((p.life -= dt * 0.04f) <= 0.0f) {
                 p.x = (rand() % 1000) / 500.0f - 1.0f;
                 p.y = -1.2f;
                 p.life = 1.0f;
             }
+
             packed.push_back(p.x);
             packed.push_back(p.y);
         }
 
+        // ---------------- Aura ----------------
+        constexpr float AURA_RADIUS = 0.20f;
+        constexpr float AURA_FORCE  = 0.0012f;
+
         for (auto& p : aura) {
+            float px = p.x;
+            float py = p.y + avatar.y;
+
+            if (mouse.active) {
+                float dx = px - mouse.x;
+                float dy = py - mouse.y;
+                float d2 = dx*dx + dy*dy;
+
+                if (d2 < AURA_RADIUS * AURA_RADIUS) {
+                    float d = std::sqrt(d2) + 0.0001f;
+                    float f = 1.0f - d / AURA_RADIUS;
+                    p.vx += (dx / d) * f * AURA_FORCE;
+                    p.vy += (dy / d) * f * AURA_FORCE;
+                }
+            }
+
             p.x += p.vx;
             p.y += p.vy;
+
             packed.push_back(p.x);
             packed.push_back(p.y + avatar.y);
         }
@@ -205,10 +268,10 @@ int main()
         glBufferSubData(GL_ARRAY_BUFFER, 0,
             packed.size() * sizeof(float), packed.data());
 
+        // ---------------- Render ----------------
         glClearColor(0.04f, 0.05f, 0.07f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // ---------------- Particles ----------------
         glUseProgram(particleProg);
         glUniform1f(pSize, 6.0f);
         glUniform4f(pColor, 0.55f, 0.7f, 1.0f, 0.25f);
@@ -218,7 +281,6 @@ int main()
         glUniform4f(pColor, 1.0f, 0.55f, 0.2f, 0.35f);
         glDrawArrays(GL_POINTS, MAX, AURA_MAX);
 
-        // ---------------- Avatar ----------------
         glUseProgram(meshProg);
         glUniform1f(mTime, time);
         glUniform2f(mOffset, 0.0f, avatar.y);

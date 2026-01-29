@@ -10,6 +10,7 @@ public:
     bool running() const;
     float frame_dt();
     void present();
+    SDL_Window* get_window() const { return window; }
 
 private:
     SDL_Window* window = nullptr;
