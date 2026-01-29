@@ -317,7 +317,11 @@ else if (p.y > WORLD_TOP) {
         glClearColor(0.04f, 0.05f, 0.07f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+// ---------------- GLOW BLEND (SHINE) ----------------
+glEnable(GL_BLEND);
+glBlendFunc(GL_SRC_ALPHA, GL_ONE);   // ADDITIVE = SHINE
 glUseProgram(particleProg);
+
 
 // REQUIRED uniforms
 glUniform1f(pSize, 6.0f);
