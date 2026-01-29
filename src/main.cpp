@@ -84,8 +84,8 @@ int main()
     // --------------------------------------------------------
     // Particles
     // --------------------------------------------------------
-    constexpr int MAX      = 900;
-    constexpr int AURA_MAX = 220;
+    constexpr int MAX      = 4000;
+    constexpr int AURA_MAX = 320;
 
     std::vector<Particle> particles(MAX);
     std::vector<AuraParticle> aura(AURA_MAX);
@@ -208,13 +208,41 @@ int main()
         std::vector<float> packed;
         packed.reserve((MAX + AURA_MAX) * 2);
 
+
+        constexpr float WORLD_LEFT   = -1.15f;
+constexpr float WORLD_RIGHT  =  1.15f;
+constexpr float WORLD_BOTTOM = -1.25f;
+constexpr float WORLD_TOP    =  1.15f;
+
+constexpr float BOUNCE_DAMP  = 0.85f;  // energy loss on bounce
+
         // ---------------- Particles ----------------
         constexpr float SCATTER_RADIUS = 0.15f;
         constexpr float SCATTER_FORCE  = 0.0025f;
 
         for (auto& p : particles) {
-            p.x += p.vx;
-            p.y += p.vy;
+p.x += p.vx;
+p.y += p.vy;
+
+// soft world bounds
+if (p.x < WORLD_LEFT) {
+    p.x = WORLD_LEFT;
+    p.vx = std::abs(p.vx) * BOUNCE_DAMP;
+}
+else if (p.x > WORLD_RIGHT) {
+    p.x = WORLD_RIGHT;
+    p.vx = -std::abs(p.vx) * BOUNCE_DAMP;
+}
+
+if (p.y < WORLD_BOTTOM) {
+    p.y = WORLD_BOTTOM;
+    p.vy = std::abs(p.vy) * BOUNCE_DAMP;
+}
+else if (p.y > WORLD_TOP) {
+    p.y = WORLD_TOP;
+    p.vy = -std::abs(p.vy) * BOUNCE_DAMP;
+}
+
 
             if (mouse.active) {
                 float dx = p.x - mouse.x;
