@@ -232,7 +232,7 @@ constexpr float BOUNCE_DAMP  = 0.85f;  // energy loss on bounce
 
         // ---------------- Particles ----------------
         constexpr float SCATTER_RADIUS = 0.15f;
-        constexpr float SCATTER_FORCE  = 0.0025f;
+        constexpr float SCATTER_FORCE  = 0.0005f;
 
         for (auto& p : particles) {
 p.x += p.vx;
