@@ -1,0 +1,3 @@
+/home/unhidra/lumen-social/build/CMakeFiles/lumen_social.dir
+/home/unhidra/lumen-social/build/CMakeFiles/edit_cache.dir
+/home/unhidra/lumen-social/build/CMakeFiles/rebuild_cache.dir
