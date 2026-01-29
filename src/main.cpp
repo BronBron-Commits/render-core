@@ -222,7 +222,8 @@ int main()
         glUseProgram(meshProg);
         glUniform1f(mTime, time);
         glUniform2f(mOffset, 0.0f, avatar.y);
-        glUniform4f(mColor, 0.88f, 0.90f, 0.95f, 1.0f);
+        glUniform4f(mColor, 0.7f, 0.76f, 0.86f, 1.0f);
+        glUniform1f(glGetUniformLocation(meshProg, "uScale"), 1.0f);
         glBindVertexArray(vaoAvatar);
         glDrawArrays(GL_TRIANGLES, 0, AVATAR_VERTS);
 
