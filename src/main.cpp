@@ -226,7 +226,7 @@ glBufferSubData(GL_ARRAY_BUFFER, 0,
         glUniform1f(uTime, time);
 
         // particles
-        glUniform1f(uPointSize, 26.0f);
+        glUniform1f(uPointSize, 5.0f);
         glUniform4f(uColor, 0.55f, 0.7f, 1.0f, 0.25f);
         glUniform1i(uCircle, 1);
         glUniform1i(uGlow, 0);
@@ -258,6 +258,17 @@ glDrawArrays(GL_TRIANGLES, 0, AVATAR_VERTS);
         glBindVertexArray(vaoAvatar);
         glDrawArrays(GL_TRIANGLES, 0, AVATAR_VERTS);
 
+        // avatar aura particles (orange dust)
+glUniform1f(uPointSize, 10.0f);
+glUniform4f(uColor, 1.0f, 0.55f, 0.2f, 0.35f);
+glUniform1i(uCircle, 1);
+glUniform1i(uGlow, 0);
+glUniform2f(uOffset, 0.0f, 0.0f);
+glUniform1f(uScale, 1.0f);
+
+glBindVertexArray(vaoParticles);
+glDrawArrays(GL_POINTS, 0, AURA_MAX);
+
         // avatar geometry (foreground)
         glUniform1f(uPointSize, 1.0f);
         glUniform4f(uColor, 0.92f, 0.92f, 1.0f, 1.0f);
@@ -269,16 +280,7 @@ glDrawArrays(GL_TRIANGLES, 0, AVATAR_VERTS);
         glBindVertexArray(vaoAvatar);
         glDrawArrays(GL_TRIANGLES, 0, AVATAR_VERTS);
 
-        // avatar aura particles (orange dust)
-glUniform1f(uPointSize, 10.0f);
-glUniform4f(uColor, 1.0f, 0.55f, 0.2f, 0.35f);
-glUniform1i(uCircle, 1);
-glUniform1i(uGlow, 0);
-glUniform2f(uOffset, 0.0f, 0.0f);
-glUniform1f(uScale, 1.0f);
 
-glBindVertexArray(vaoParticles);
-glDrawArrays(GL_POINTS, 0, AURA_MAX);
 
 
         // vignette
